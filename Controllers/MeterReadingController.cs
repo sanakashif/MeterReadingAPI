@@ -56,16 +56,35 @@ namespace MeterReadingAPI.Controllers
                                         meterReading.MeterReadValue = reading.ToString("00000");
 
                                         // Checking if reading already exist for this account 
-                                        var existingReading = db.MeterReadings.Where(m => m.AccountID == accountId && m.MeterReadValue== meterReading.MeterReadValue).FirstOrDefault();
+                                        var existingReading = db.MeterReadings.Where(m => m.AccountID == accountId ).FirstOrDefault();
 
+                                        // If reading doesn't exist for the account insert record in the database
                                         if (existingReading == null)
                                         {
                                             db.MeterReadings.Add(meterReading);
                                             db.SaveChanges();
+                                            successfulReadings += 1;
+                                            failedReadings -= 1;
+                                        }
+                                        else
+                                        {   
+                                            // Checking if meter read values are the same for the same account
+                                            var sameReading = existingReading.MeterReadValue == meterReading.MeterReadValue;
+                                            
+                                            if (!sameReading)
+                                            {
+                                                // If reading exist for the current account check if new read is not older than existing read
+                                                if (existingReading.MeterReadingDateTime < meterReading.MeterReadingDateTime)
+                                                {
+                                                    db.MeterReadings.Add(meterReading);
+                                                    db.SaveChanges();
+                                                    successfulReadings += 1;
+                                                    failedReadings -= 1;
+                                                }
+                                            }
                                         }
 
-                                        successfulReadings += 1;
-                                        failedReadings -= 1;
+                                       
                                     }
                                 }
 
