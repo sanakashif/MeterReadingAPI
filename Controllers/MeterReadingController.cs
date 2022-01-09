@@ -34,10 +34,8 @@ namespace MeterReadingAPI.Controllers
                         var accountId = Convert.ToInt32(currentRecord["AccountId"]);
                         // Checking if account exists in the accounts table
                         var accountExist = db.Accounts.Where(a => a.ID == accountId).FirstOrDefault();
-                        // Checking if reading already exist for this account 
-                        var existingReading = db.MeterReadings.Where(m => m.AccountID == accountId).FirstOrDefault();
-
-                        if (accountExist!=null && existingReading==null)
+                        
+                        if (accountExist!=null)
                         {
                             MeterReading meterReading = new MeterReading();
                             meterReading.ID = i + 1;
@@ -56,10 +54,16 @@ namespace MeterReadingAPI.Controllers
                                     if (reading.ToString().Length <= 5)
                                     {
                                         meterReading.MeterReadValue = reading.ToString("00000");
-                                                                               
-                                        db.MeterReadings.Add(meterReading);
-                                        db.SaveChanges();                                        
-                                        
+
+                                        // Checking if reading already exist for this account 
+                                        var existingReading = db.MeterReadings.Where(m => m.AccountID == accountId && m.MeterReadValue== meterReading.MeterReadValue).FirstOrDefault();
+
+                                        if (existingReading == null)
+                                        {
+                                            db.MeterReadings.Add(meterReading);
+                                            db.SaveChanges();
+                                        }
+
                                         successfulReadings += 1;
                                         failedReadings -= 1;
                                     }
